@@ -1,0 +1,229 @@
+/* Font Imports - Inter (300-800) & Caveat (400-700) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 240 10% 3.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 3.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 240 10% 3.9%;
+        --primary: 160 77% 45%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 340 70% 55%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 240 4.8% 95.9%;
+        --muted-foreground: 240 3.8% 46.1%;
+        --accent: 160 30% 95%;
+        --accent-foreground: 160 77% 35%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 0 0% 98%;
+        --border: 240 5.9% 90%;
+        --input: 240 5.9% 90%;
+        --ring: 160 77% 45%;
+        --radius: 0.75rem;
+
+        /* Brand Colors */
+        --brand-green: #17CB96;
+        --brand-pink: #DE457D;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-border;
+        scroll-behavior: smooth;
+    }
+
+    body {
+        @apply bg-background text-foreground font-sans antialiased leading-relaxed;
+    }
+
+    /* Heading Styles (Base Layer) */
+    h1 {
+        @apply text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight;
+    }
+
+    h2 {
+        @apply text-3xl md:text-4xl font-bold tracking-tight;
+    }
+
+    h3 {
+        @apply text-2xl md:text-3xl font-bold tracking-tight;
+    }
+
+    p {
+        @apply leading-relaxed;
+    }
+}
+
+/* Font Families */
+.font-sans {
+    font-family: 'Inter', 'SF Pro Display', system-ui, sans-serif;
+}
+
+.font-script {
+    font-family: 'Caveat', cursive;
+}
+
+/* Text Highlight Styles - Underlines */
+.curly-underline {
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: #0EA5E9;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2px;
+}
+
+.curly-scribble-underline {
+    text-decoration: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: #FFA500;
+    text-underline-offset: 6px;
+    text-decoration-thickness: 2.5px;
+}
+
+/* Text Highlight Styles - Background Highlights */
+.highlight-text-bg {
+    background: linear-gradient(120deg, #f97316 0%, #f97316 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 40%;
+    background-position: 0 85%;
+    padding: 0.1em 0.3em;
+}
+
+.highlight-text-bg-2 {
+    background: linear-gradient(120deg, #ea384c 0%, #ea384c 100%);
+    background-repeat: no-repeat;
+    background-size: 100% 40%;
+    background-position: 0 85%;
+    padding: 0.1em 0.3em;
+}
+
+/* Organic Highlight Styles - Blob Backgrounds */
+.organic-highlight-bg {
+    background-color: rgba(255, 165, 0, 0.3);
+    padding: 0.1em 0.4em;
+    border-radius: 50% 20% / 20% 50%;
+    display: inline-block;
+    transform: rotate(-1deg);
+}
+
+.organic-highlight-purple {
+    background-color: rgba(139, 92, 246, 0.25);
+    padding: 0.1em 0.4em;
+    border-radius: 45% 25% / 30% 55%;
+    display: inline-block;
+    transform: rotate(1deg);
+}
+
+.organic-highlight-pink {
+    background-color: rgba(222, 69, 125, 0.25);
+    padding: 0.1em 0.4em;
+    border-radius: 40% 30% / 35% 50%;
+    display: inline-block;
+    transform: rotate(-1.5deg);
+}
+
+.organic-highlight-blue {
+    background-color: rgba(14, 165, 233, 0.25);
+    padding: 0.1em 0.4em;
+    border-radius: 35% 45% / 40% 45%;
+    display: inline-block;
+    transform: rotate(0.5deg);
+}
+
+.organic-highlight-yellow {
+    background-color: rgba(59, 208, 156, 0.3);
+    padding: 0.1em 0.4em;
+    border-radius: 50% 20% / 25% 50%;
+    display: inline-block;
+    transform: rotate(-1deg);
+}
+
+.organic-highlight-green {
+    background-color: rgba(16, 185, 129, 0.25);
+    padding: 0.1em 0.4em;
+    border-radius: 40% 35% / 30% 50%;
+    display: inline-block;
+    transform: rotate(1deg);
+}
+
+.organic-highlight-lavender {
+    background-color: rgba(167, 139, 250, 0.3);
+    padding: 0.1em 0.5em;
+    border-radius: 42% 28% / 35% 48%;
+    display: inline-block;
+    transform: rotate(-0.5deg);
+}
+
+/* Pill Badge Styles */
+.pill-badge-pink {
+    background-color: rgba(244, 114, 182, 0.2);
+    color: #db2777;
+    padding: 0.15em 0.6em;
+    border-radius: 9999px;
+    font-style: italic;
+    display: inline-block;
+    border: 1px solid rgba(244, 114, 182, 0.3);
+}
+
+/* Coral Color Utility */
+.text-coral-500 {
+    color: #f97171;
+}
+
+/* Brand Utilities */
+.bg-brand-pink {
+    background-color: #DE457D !important;
+}
+
+.bg-brand-pink-light {
+    background-color: #FCEEF0;
+}
+
+/* Gradient utilities */
+.gradient-brand {
+    background: linear-gradient(135deg, #17CB96 0%, #DE457D 100%);
+}
+
+.btn-gradient {
+    background: linear-gradient(135deg, #17CB96 0%, #DE457D 100%);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-gradient:hover {
+    background: linear-gradient(135deg, #14b886 0%, #c93d6f 100%);
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(23, 203, 150, 0.3);
+}
+
+/* Skip Link - Accessibility */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+.focus\:not-sr-only:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: inherit;
+    margin: inherit;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}

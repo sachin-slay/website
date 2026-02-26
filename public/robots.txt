@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://slayhealth.com/sitemap.xml
+
+# Disallow admin/internal pages
+Disallow: /dashboard
+Disallow: /add-prospect
+Disallow: /reports
+Disallow: /scoring-matrix
+Disallow: /questionnaire
