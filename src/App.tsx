@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppProvider } from "@/context/AppContext";
+import { Analytics } from "@vercel/analytics/react";
 import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -51,6 +52,7 @@ const App = () => (
                     </Routes>
                 </BrowserRouter>
             </AppProvider>
+            <Analytics />
         </TooltipProvider>
     </QueryClientProvider>
 );
