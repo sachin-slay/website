@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { Session } from '@supabase/supabase-js';
 
 type Language = 'en' | 'hi' | 'bn' | 'te' | 'ta' | 'gu' | 'kn' | 'mr' | 'pa' | 'ur';
 type ViewingMode = 'candidate' | 'parent' | 'counselor' | 'couple';
@@ -85,6 +87,8 @@ interface AppContextType {
     selectedMatchId: string | null;
     setSelectedMatchId: (id: string | null) => void;
     getMatchById: (id: string) => Match | undefined;
+    session: Session | null;
+    logout: () => Promise<void>;
 }
 
 const defaultUserProfile: UserProfile = {
@@ -128,7 +132,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const [currentProspect, setCurrentProspect] = useState<ProspectProfile>(defaultProspect);
     const [matches, setMatches] = useState<Match[]>([]);
     const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+
     const freeMatchesAvailable = 3 - matches.length;
+
+    useEffect(() => {
+        // Fetch existing session on initial load
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+        });
+
+        // Listen for active authentication state transitions
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const logout = async () => {
+        await supabase.auth.signOut();
+    };
 
     const getMatchById = (id: string): Match | undefined => {
         return matches.find(m => m.id === id);
@@ -164,7 +190,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             matches, addMatch,
             freeMatchesAvailable,
             selectedMatchId, setSelectedMatchId,
-            getMatchById
+            getMatchById,
+            session,
+            logout
         }}>
             {children}
         </AppContext.Provider>
@@ -178,5 +206,6 @@ export const useApp = () => {
     }
     return context;
 };
+
 
 
