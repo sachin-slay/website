@@ -4,6 +4,7 @@ import { MessageCircle, ArrowRight, ShieldCheck, ArrowLeft, Heart, Sparkles, Shi
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabaseClient';
+import { useApp } from '@/context/AppContext';
 
 const ONBOARDING_BANNERS = [
     {
@@ -55,11 +56,17 @@ const ONBOARDING_BANNERS = [
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { session } = useApp();
     const [phoneNumber, setPhoneNumber] = useState('');
     const [step, setStep] = useState<'phone' | 'otp'>('phone');
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [currentBanner, setCurrentBanner] = useState(0);
     const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [resendTimer, setResendTimer] = useState<number>(0);
+    const [normalizedPhone, setNormalizedPhone] = useState<string>('');
 
     // Auto-rotate banners
     useEffect(() => {
@@ -69,24 +76,111 @@ const LoginPage = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Monitor countdown timer
+    useEffect(() => {
+        if (resendTimer > 0) {
+            const timer = setTimeout(() => {
+                setResendTimer(prev => prev - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [resendTimer]);
+
+    // Handle redirection when session changes
+    useEffect(() => {
+        if (session?.access_token) {
+            setLoading(true);
+            const checkOnboarding = async () => {
+                try {
+                    const res = await fetch("http://localhost:4000/api/auth/me", {
+                        headers: { "Authorization": `Bearer ${session.access_token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.dbUser && data.dbUser.lifestyle) {
+                            navigate('/dashboard');
+                        } else {
+                            navigate('/questionnaire');
+                        }
+                    } else {
+                        navigate('/questionnaire');
+                    }
+                } catch (err) {
+                    console.error("Error checking onboarding status:", err);
+                    navigate('/questionnaire');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            checkOnboarding();
+        }
+    }, [session, navigate]);
+
     const handleGoogleSignIn = async () => {
+        setError(null);
         try {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/questionnaire`
+                    redirectTo: `${window.location.origin}/login`
                 }
             });
             if (error) throw error;
         } catch (error: any) {
+            setError(error.message || 'Error signing in with Google.');
             console.error('Error signing in with Google:', error.message);
         }
     };
 
-    const handlePhoneSubmit = (e: React.FormEvent) => {
+    const handlePhoneSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (phoneNumber.length >= 10) {
+        setError(null);
+
+        const cleaned = phoneNumber.replace(/\D/g, '');
+        if (cleaned.length !== 10) {
+            setError('Please enter a valid 10-digit mobile number.');
+            return;
+        }
+
+        const formatted = `+91${cleaned}`;
+        setNormalizedPhone(formatted);
+        setLoading(true);
+
+        try {
+            const { error: sendError } = await supabase.auth.signInWithOtp({
+                phone: formatted,
+            });
+
+            if (sendError) throw sendError;
+
             setStep('otp');
+            setResendTimer(30); // 30s countdown
+        } catch (err: any) {
+            setError(err.message || 'Failed to send OTP code.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (resendTimer > 0 || !normalizedPhone) return;
+
+        setError(null);
+        setLoading(true);
+
+        try {
+            const { error: sendError } = await supabase.auth.signInWithOtp({
+                phone: normalizedPhone,
+            });
+
+            if (sendError) throw sendError;
+
+            setResendTimer(30);
+            setOtp(['', '', '', '', '', '']); // reset input
+        } catch (err: any) {
+            setError(err.message || 'Failed to resend code.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -112,17 +206,37 @@ const LoginPage = () => {
         }
     };
 
-    const handleOtpSubmit = (e: React.FormEvent) => {
+    const handleOtpSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
+
         const enteredOtp = otp.join('');
-        if (enteredOtp.length >= 1) {
-            navigate('/questionnaire');
+        if (enteredOtp.length !== 6) {
+            setError('Please enter the full 6-digit verification code.');
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const { error: verifyError } = await supabase.auth.verifyOtp({
+                phone: normalizedPhone,
+                token: enteredOtp,
+                type: 'sms',
+            });
+
+            if (verifyError) throw verifyError;
+        } catch (err: any) {
+            setError(err.message || 'Invalid or expired OTP. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
     const handleBack = () => {
         setStep('phone');
         setOtp(['', '', '', '', '', '']);
+        setError(null);
     };
 
     useEffect(() => {
@@ -325,7 +439,8 @@ const LoginPage = () => {
                                                 type="tel"
                                                 name="phone"
                                                 id="phone"
-                                                className="block w-full pl-14 pr-4 py-4 text-lg border-2 border-slate-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                                disabled={loading}
+                                                className="block w-full pl-14 pr-4 py-4 text-lg border-2 border-slate-200 rounded-xl focus:border-[#D4544C] focus:ring-4 focus:ring-[#D4544C]/10 outline-none transition-all disabled:opacity-60"
                                                 placeholder="98765 43210"
                                                 value={phoneNumber}
                                                 onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, '').slice(0, 10))}
@@ -334,17 +449,32 @@ const LoginPage = () => {
                                         </div>
                                     </div>
 
+                                    {error && (
+                                        <div className="p-3 bg-rose-50 border border-rose-100 text-rose-800 rounded-xl text-xs font-semibold leading-relaxed">
+                                            {error}
+                                        </div>
+                                    )}
+
                                     <button
                                         type="submit"
-                                        disabled={phoneNumber.length < 10}
-                                        className="w-full flex justify-center items-center gap-3 py-4 px-6 rounded-xl text-white bg-[#25D366] hover:bg-[#22c55e] font-semibold text-lg shadow-lg shadow-green-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                                        disabled={phoneNumber.length < 10 || loading}
+                                        className="w-full flex justify-center items-center gap-3 py-4 px-6 rounded-xl text-white bg-[#D4544C] hover:bg-[#c24941] font-semibold text-lg shadow-lg shadow-[#D4544C]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <MessageCircle className="w-6 h-6" />
-                                        Send OTP via WhatsApp
+                                        {loading ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Sending OTP...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <MessageCircle className="w-6 h-6" />
+                                                Send OTP via SMS
+                                            </>
+                                        )}
                                     </button>
 
                                     <p className="text-xs text-center text-slate-500">
-                                        We'll send a verification code to your WhatsApp.
+                                        We'll send a 6-digit verification code to your mobile number.
                                     </p>
 
                                     <div className="relative my-4">
@@ -359,7 +489,8 @@ const LoginPage = () => {
                                     <button
                                         type="button"
                                         onClick={handleGoogleSignIn}
-                                        className="w-full flex justify-center items-center gap-3 py-3.5 px-6 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold text-base text-slate-700 shadow-sm transition-all"
+                                        disabled={loading}
+                                        className="w-full flex justify-center items-center gap-3 py-3.5 px-6 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-semibold text-base text-slate-700 shadow-sm transition-all disabled:opacity-50"
                                     >
                                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -378,14 +509,14 @@ const LoginPage = () => {
                                         </div>
                                         <div className="relative flex justify-center text-sm">
                                             <span className="px-4 bg-white text-slate-500 font-medium">
-                                                Why WhatsApp?
+                                                Why Slay Health?
                                             </span>
                                         </div>
                                     </div>
 
                                     <div className="mt-6 space-y-3">
-                                        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-100">
-                                            <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-teal-50 to-emerald-50 rounded-xl border border-teal-100">
+                                            <div className="w-10 h-10 bg-[#17CB96] rounded-lg flex items-center justify-center flex-shrink-0">
                                                 <ShieldCheck className="w-5 h-5 text-white" />
                                             </div>
                                             <span className="text-sm text-slate-700 font-medium">
@@ -415,33 +546,48 @@ const LoginPage = () => {
                                                     key={index}
                                                     ref={(el) => { otpInputRefs.current[index] = el; }}
                                                     type="text"
+                                                    disabled={loading}
                                                     inputMode="numeric"
                                                     maxLength={1}
                                                     value={digit}
                                                     onChange={(e) => handleOtpChange(index, e.target.value)}
                                                     onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                                                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
+                                                    className="w-12 h-14 text-center text-2xl font-bold border-2 border-slate-200 rounded-xl focus:border-[#D4544C] focus:ring-4 focus:ring-[#D4544C]/10 outline-none transition-all disabled:opacity-60"
                                                 />
                                             ))}
                                         </div>
-                                        <p className="mt-3 text-xs text-center text-slate-500">
-                                            Enter any OTP to continue (demo mode)
-                                        </p>
                                     </div>
+
+                                    {error && (
+                                        <div className="p-3 bg-rose-50 border border-rose-100 text-rose-800 rounded-xl text-xs font-semibold leading-relaxed">
+                                            {error}
+                                        </div>
+                                    )}
 
                                     <div className="space-y-3">
                                         <button
                                             type="submit"
-                                            className="w-full flex justify-center items-center gap-2 py-4 px-6 rounded-xl text-white bg-[#25D366] hover:bg-[#22c55e] font-semibold text-lg shadow-lg shadow-green-500/25 transition-all"
+                                            disabled={loading || otp.join('').length !== 6}
+                                            className="w-full flex justify-center items-center gap-2 py-4 px-6 rounded-xl text-white bg-[#D4544C] hover:bg-[#c24941] font-semibold text-lg shadow-lg shadow-[#D4544C]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
-                                            Verify & Continue
-                                            <ArrowRight className="w-5 h-5" />
+                                            {loading ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                    Verifying...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Verify & Continue
+                                                    <ArrowRight className="w-5 h-5" />
+                                                </>
+                                            )}
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={handleBack}
-                                            className="w-full flex justify-center items-center gap-2 py-3 px-6 rounded-xl border-2 border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all"
+                                            disabled={loading}
+                                            className="w-full flex justify-center items-center gap-2 py-3 px-6 rounded-xl border-2 border-slate-200 text-slate-700 font-medium hover:bg-slate-50 transition-all disabled:opacity-50"
                                         >
                                             <ArrowLeft className="w-4 h-4" />
                                             Change Number
@@ -452,9 +598,20 @@ const LoginPage = () => {
                                 <div className="mt-6 text-center">
                                     <p className="text-sm text-slate-500">
                                         Didn't receive the code?{' '}
-                                        <button className="text-primary font-semibold hover:underline">
-                                            Resend OTP
-                                        </button>
+                                        {resendTimer > 0 ? (
+                                            <span className="text-slate-400 font-semibold">
+                                                Resend in {resendTimer}s
+                                            </span>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={handleResendOtp}
+                                                disabled={loading}
+                                                className="text-[#D4544C] font-semibold hover:underline focus:outline-none"
+                                            >
+                                                Resend OTP
+                                            </button>
+                                        )}
                                     </p>
                                 </div>
                             </motion.div>

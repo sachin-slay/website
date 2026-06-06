@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, User, Users, Heart, ChevronDown, Check, Lock } from 'lucide-react';
+import { ArrowRight, ArrowLeft, User, Users, Heart, ChevronDown, Check, Lock, AlertCircle } from 'lucide-react';
 import { useApp, LifestyleProfile } from '@/context/AppContext';
 import { DatePicker } from '@/components/ui/date-picker';
 import LifestyleForm from '@/components/LifestyleForm';
@@ -27,7 +27,10 @@ const MATRIMONIAL_PLATFORMS = [
 
 const AddProspectPage = () => {
     const navigate = useNavigate();
-    const { userProfile, candidateProfile, currentProspect, setCurrentProspect, addMatch } = useApp();
+    const { userProfile, candidateProfile, currentProspect, setCurrentProspect, addMatch, session } = useApp();
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Determine the person getting married (candidate or self)
     const displayProfile = userProfile.userRelation === 'Self' ? {
@@ -108,20 +111,54 @@ const AddProspectPage = () => {
             (prospectData.meetingSource !== 'Matrimonial Platform' || prospectData.platformName);
     };
 
-    const handleSubmit = () => {
-        const prospect = {
+    const handleSubmit = async () => {
+        if (!session?.access_token) {
+            setError("You must be logged in to create a match.");
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+
+        const payload = {
             name: prospectData.name,
             dob: prospectData.dob,
             age: prospectData.age,
-            gender: prospectData.gender as any,
+            gender: prospectData.gender,
             city: prospectData.city,
-            meetingSource: prospectData.meetingSource as any,
+            meetingSource: prospectData.meetingSource,
             platformName: prospectData.platformName,
             lifestyle: prospectData.lifestyle
         };
-        setCurrentProspect(prospect);
-        addMatch(displayProfile, prospect);
-        navigate('/reports');
+
+        try {
+            const response = await fetch("http://localhost:4000/api/matches", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || "Failed to create match.");
+            }
+
+            const data = await response.json();
+
+            // Store in local context if still needed, though Dashboard fetches from backend
+            setCurrentProspect(payload as any);
+            addMatch(displayProfile, payload as any);
+
+            // Navigate to the newly created match report
+            navigate(`/report/${data.id}`);
+        } catch (err: any) {
+            setError(err.message || "An unexpected error occurred.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -424,6 +461,13 @@ const AddProspectPage = () => {
                     />
                 </motion.div>
 
+                {error && (
+                    <div className="mt-6 p-4 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-sm font-medium">{error}</p>
+                    </div>
+                )}
+
                 {/* Action Buttons */}
                 <div className="mt-8 flex justify-between items-center">
                     <button
@@ -435,10 +479,10 @@ const AddProspectPage = () => {
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={!isFormValid()}
+                        disabled={!isFormValid() || loading}
                         className="bg-[#DE457D] hover:bg-[#c93d6f] text-white px-8 py-3 rounded-full font-semibold shadow-lg shadow-pink-500/25 transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
                     >
-                        Generate Insights
+                        {loading ? 'Generating...' : 'Generate Insights'}
                         <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>

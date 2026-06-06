@@ -26,9 +26,9 @@ const queryClient = new QueryClient();
 const App = () => (
     <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-            <Toaster />
             <AppProvider>
-                <BrowserRouter>
+                <Toaster />
+                <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Routes>
                         <Route path="/" element={<Layout />}>
                             <Route index element={<HomePage />} />
@@ -44,6 +44,7 @@ const App = () => (
                             <Route path="questionnaire" element={<QuestionnairePage />} />
                             <Route path="dashboard" element={<DashboardPage />} />
                             <Route path="add-prospect" element={<AddProspectPage />} />
+                            <Route path="report/:id" element={<SampleReportPage />} />
                             <Route path="reports" element={<ReportsPage />} />
                             <Route path="scoring-matrix" element={<ScoringMatrixPage />} />
                             <Route path="*" element={<NotFound />} />

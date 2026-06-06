@@ -10,12 +10,34 @@ import { useApp } from '@/context/AppContext';
 
 const DashboardPage = () => {
     const navigate = useNavigate();
-    const { userProfile, candidateProfile, matches, freeMatchesAvailable, setSelectedMatchId, setCurrentProspect } = useApp();
+    const { userProfile, candidateProfile, freeMatchesAvailable, setSelectedMatchId, setCurrentProspect, session } = useApp();
+    const [matches, setMatches] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
 
-    const handleMatchClick = (match: typeof matches[0]) => {
+    React.useEffect(() => {
+        if (!session?.access_token) return;
+        const fetchMatches = async () => {
+            try {
+                const res = await fetch("http://localhost:4000/api/matches", {
+                    headers: { "Authorization": `Bearer ${session.access_token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setMatches(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch matches", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchMatches();
+    }, [session]);
+
+    const handleMatchClick = (match: any) => {
         setSelectedMatchId(match.id);
         setCurrentProspect(match.prospect);
-        navigate('/reports');
+        navigate(`/report/${match.id}`);
     };
 
     // Get display profile (candidate if user filled on behalf, else self)
@@ -137,7 +159,11 @@ const DashboardPage = () => {
                                 )}
                             </div>
 
-                            {matches.length > 0 ? (
+                            {loading ? (
+                                <div className="p-8 text-center text-slate-500">
+                                    Loading your matches...
+                                </div>
+                            ) : matches.length > 0 ? (
                                 <div className="divide-y divide-slate-100">
                                     {matches.slice(0, 3).map((match) => {
                                         // Get test categories based on which reports were done
@@ -158,14 +184,14 @@ const DashboardPage = () => {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="font-semibold text-slate-900 text-sm sm:text-lg truncate">
-                                                            {match.candidate.name} & {match.prospect.name}
+                                                            {match.user?.name || 'User'} & {match.prospect?.name || 'Prospect'}
                                                         </p>
                                                         <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
                                                             <span className="text-xs sm:text-sm text-slate-500 flex items-center gap-1">
                                                                 <Calendar className="w-3 h-3" />
-                                                                {match.createdAt.toLocaleDateString()}
+                                                                {new Date(match.createdAt).toLocaleDateString()}
                                                             </span>
-                                                            {match.prospect.meetingSource && (
+                                                            {match.prospect?.meetingSource && (
                                                                 <span className="hidden sm:flex items-center gap-1 text-xs sm:text-sm text-slate-600">
                                                                     <span className="text-slate-300">•</span>
                                                                     <Heart className="w-3 h-3 text-pink-500" />

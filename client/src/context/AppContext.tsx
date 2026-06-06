@@ -152,6 +152,81 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         return () => subscription.unsubscribe();
     }, []);
 
+    useEffect(() => {
+        if (!session?.access_token) {
+            setUserProfile(defaultUserProfile);
+            setCandidateProfile(defaultCandidateProfile);
+            return;
+        }
+
+        const fetchUserProfile = async () => {
+            try {
+                const response = await fetch("http://localhost:4000/api/auth/me", {
+                    headers: {
+                        "Authorization": `Bearer ${session.access_token}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.dbUser) {
+                        const dbUser = data.dbUser;
+                        
+                        const profileData: UserProfile = {
+                            name: dbUser.name || '',
+                            dob: dbUser.dob ? new Date(dbUser.dob) : undefined,
+                            age: dbUser.age ? dbUser.age.toString() : '',
+                            gender: dbUser.gender || '',
+                            city: dbUser.city || '',
+                            relationshipStatus: dbUser.relationshipStatus || '',
+                            marriageTimeline: dbUser.marriageTimeline || '',
+                            userRelation: dbUser.userRelation || '',
+                        };
+
+                        if (dbUser.lifestyle) {
+                            profileData.lifestyle = {
+                                activityLevel: dbUser.lifestyle.activityLevel || '',
+                                dailySteps: dbUser.lifestyle.dailySteps?.toString() || '',
+                                occupation: dbUser.lifestyle.occupation || '',
+                                workStyle: dbUser.lifestyle.workStyle || '',
+                                drinkingHabit: dbUser.lifestyle.drinkingHabit || '',
+                                smokingHabit: dbUser.lifestyle.smokingHabit || '',
+                                tobaccoHabit: dbUser.lifestyle.tobaccoHabit || '',
+                                sleepPattern: dbUser.lifestyle.sleepPattern || '',
+                                height: {
+                                    value: dbUser.lifestyle.heightValue?.toString() || '',
+                                    unit: dbUser.lifestyle.heightUnit || 'cm'
+                                },
+                                weight: {
+                                    value: dbUser.lifestyle.weightValue?.toString() || '',
+                                    unit: dbUser.lifestyle.weightUnit || 'kg'
+                                },
+                                waistCircumference: {
+                                    value: dbUser.lifestyle.waistValue?.toString() || '',
+                                    unit: dbUser.lifestyle.waistUnit || 'in'
+                                },
+                                menstrualCycle: dbUser.lifestyle.menstrualCycle || ''
+                            };
+                        }
+
+                        setUserProfile(profileData);
+                        
+                        setCandidateProfile({
+                            name: dbUser.name || '',
+                            dob: dbUser.dob ? new Date(dbUser.dob) : undefined,
+                            age: dbUser.age ? dbUser.age.toString() : '',
+                            gender: dbUser.gender || '',
+                            city: dbUser.city || ''
+                        });
+                    }
+                }
+            } catch (err) {
+                console.error("Error fetching user profile:", err);
+            }
+        };
+
+        fetchUserProfile();
+    }, [session]);
+
     const logout = async () => {
         await supabase.auth.signOut();
     };

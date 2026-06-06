@@ -117,7 +117,7 @@ const SAMPLE_INSIGHTS = {
 const ReportsPage = () => {
     const navigate = useNavigate();
     const { candidateProfile, currentProspect, userProfile, selectedMatchId, getMatchById } = useApp();
-
+ 
     // Get selected match data if available
     const selectedMatch = selectedMatchId ? getMatchById(selectedMatchId) : null;
     const matchScore = selectedMatch?.score || SAMPLE_INSIGHTS.compatibilityScore;

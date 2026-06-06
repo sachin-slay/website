@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Heart, ChevronDown, Check, User, Users, Activity } from 'lucide-react';
+import { ArrowRight, Heart, ChevronDown, Check, User, Users, Activity, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DatePicker } from "@/components/ui/date-picker";
 import { useApp, LifestyleProfile } from '@/context/AppContext';
@@ -12,7 +12,10 @@ const USER_RELATIONS = ['Self', 'Parents', 'Siblings', 'Friends', 'Relatives'];
 
 const QuestionnairePage = () => {
     const navigate = useNavigate();
-    const { setUserProfile, setCandidateProfile } = useApp();
+    const { userProfile, candidateProfile, setUserProfile, setCandidateProfile, session } = useApp();
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         // User info
@@ -54,6 +57,69 @@ const QuestionnairePage = () => {
     const statusDropdownRef = React.useRef<HTMLDivElement>(null);
     const timeDropdownRef = React.useRef<HTMLDivElement>(null);
 
+    const hasPrepopulated = React.useRef(false);
+
+    React.useEffect(() => {
+        if (session && userProfile.name && !hasPrepopulated.current) {
+            // Check if onboarding is already completed
+            if (userProfile.lifestyle && userProfile.lifestyle.activityLevel) {
+                navigate('/dashboard');
+                return;
+            }
+
+            hasPrepopulated.current = true;
+
+            const isSelf = userProfile.userRelation === 'Self';
+            setFormData({
+                userName: isSelf ? userProfile.name : '', // If not self, they'll type it
+                userRelation: userProfile.userRelation || '',
+                candidateName: isSelf ? userProfile.name : (candidateProfile.name || ''),
+                candidateDob: candidateProfile.dob,
+                candidateAge: candidateProfile.age || '',
+                candidateGender: candidateProfile.gender || '',
+                candidateCity: candidateProfile.city || '',
+                relationshipStatus: userProfile.relationshipStatus || '',
+                marriageTimeline: userProfile.marriageTimeline || '',
+                lifestyle: userProfile.lifestyle ? {
+                    activityLevel: userProfile.lifestyle.activityLevel || '',
+                    dailySteps: userProfile.lifestyle.dailySteps || '',
+                    occupation: userProfile.lifestyle.occupation || '',
+                    workStyle: userProfile.lifestyle.workStyle || '',
+                    drinkingHabit: userProfile.lifestyle.drinkingHabit || '',
+                    smokingHabit: userProfile.lifestyle.smokingHabit || '',
+                    tobaccoHabit: userProfile.lifestyle.tobaccoHabit || '',
+                    sleepPattern: userProfile.lifestyle.sleepPattern || '',
+                    height: {
+                        value: userProfile.lifestyle.height?.value || '',
+                        unit: userProfile.lifestyle.height?.unit || 'cm'
+                    },
+                    weight: {
+                        value: userProfile.lifestyle.weight?.value || '',
+                        unit: userProfile.lifestyle.weight?.unit || 'kg'
+                    },
+                    waistCircumference: {
+                        value: userProfile.lifestyle.waistCircumference?.value || '',
+                        unit: userProfile.lifestyle.waistCircumference?.unit || 'in'
+                    },
+                    menstrualCycle: userProfile.lifestyle.menstrualCycle || ''
+                } : {
+                    activityLevel: '',
+                    dailySteps: '',
+                    occupation: '',
+                    workStyle: '',
+                    drinkingHabit: '',
+                    smokingHabit: '',
+                    tobaccoHabit: '',
+                    sleepPattern: '',
+                    height: { value: '', unit: 'cm' },
+                    weight: { value: '', unit: 'kg' },
+                    waistCircumference: { value: '', unit: 'in' },
+                    menstrualCycle: ''
+                }
+            });
+        }
+    }, [userProfile, candidateProfile, session, navigate]);
+
     React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (relationDropdownRef.current && !relationDropdownRef.current.contains(event.target as Node)) {
@@ -90,30 +156,58 @@ const QuestionnairePage = () => {
         }
     }, [formData.candidateDob]);
 
-    const handleSubmit = () => {
-        // Save user profile
-        setUserProfile({
-            name: formData.userName,
-            dob: formData.userRelation === 'Self' ? formData.candidateDob : undefined,
-            age: formData.userRelation === 'Self' ? formData.candidateAge : '',
-            gender: formData.userRelation === 'Self' ? formData.candidateGender as any : '',
-            city: formData.userRelation === 'Self' ? formData.candidateCity : '',
-            relationshipStatus: formData.relationshipStatus,
-            marriageTimeline: formData.marriageTimeline,
-            userRelation: formData.userRelation as any,
-            lifestyle: formData.lifestyle
-        });
+    const handleSubmit = async () => {
+        if (!session?.access_token) {
+            setError("You must be logged in to save your profile.");
+            return;
+        }
 
-        // Save candidate profile (the person actually getting married)
-        setCandidateProfile({
-            name: formData.candidateName,
+        setLoading(true);
+        setError(null);
+
+        const payload = {
+            name: formData.userRelation === 'Self' ? formData.userName : formData.candidateName,
             dob: formData.candidateDob,
             age: formData.candidateAge,
-            gender: formData.candidateGender as any,
-            city: formData.candidateCity
-        });
+            gender: formData.candidateGender,
+            city: formData.candidateCity,
+            relationshipStatus: formData.relationshipStatus,
+            marriageTimeline: formData.marriageTimeline,
+            userRelation: formData.userRelation,
+            lifestyle: formData.lifestyle
+        };
 
-        navigate('/dashboard');
+        try {
+            const response = await fetch("http://localhost:4000/api/users", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.error || "Failed to save profile.");
+            }
+
+            // Save to local context for fast UI access
+            setUserProfile(payload as any);
+            setCandidateProfile({
+                name: formData.candidateName,
+                dob: formData.candidateDob,
+                age: formData.candidateAge,
+                gender: formData.candidateGender as any,
+                city: formData.candidateCity
+            });
+
+            navigate('/dashboard');
+        } catch (err: any) {
+            setError(err.message || "An unexpected error occurred.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const isFormValid = () => {
@@ -420,13 +514,20 @@ const QuestionnairePage = () => {
                     )}
                 </AnimatePresence>
 
+                {error && (
+                    <div className="mb-6 p-4 bg-rose-50 text-rose-600 rounded-lg border border-rose-100 flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <p className="text-sm font-medium">{error}</p>
+                    </div>
+                )}
+
                 <div className="flex justify-end">
                     <button
                         onClick={handleSubmit}
-                        disabled={!isFormValid()}
+                        disabled={!isFormValid() || loading}
                         className="bg-[#DE457D] hover:bg-[#c93d6f] text-white px-8 py-3 rounded-full font-semibold shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
                     >
-                        Continue
+                        {loading ? 'Saving...' : 'Continue'}
                         <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>

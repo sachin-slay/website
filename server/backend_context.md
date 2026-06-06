@@ -1,85 +1,169 @@
 # Backend Context: Slay Health (website/server)
 
-This document provides a reference to the backend codebase architecture, database models, and authentication system for the **Slay Health** web application.
+This document provides a detailed reference to the backend Express server architecture, local token signature verification middleware, relational Prisma database schemas, API routes, and operational guides for the **Slay Health** resource server.
 
 ---
 
-## 🛠️ Technology Stack
-* **Runtime:** Node.js (TypeScript) running on Express.
-* **ORM:** Prisma ORM connecting to Supabase PostgreSQL.
-* **Authentication:** Supabase OAuth JWT validation via signature verification.
-* **Dependencies:** `express`, `@prisma/client`, `jsonwebtoken`, `cors`, `dotenv`, and `tsx` (for fast runtime development).
+## 🏗️ Relational Database Entity-Relationship Model
+
+The PostgreSQL database is managed via Prisma ORM. The schema models candidates, matrimonial prospects, their individual biological/lifestyle profiles, match associations, and diagnostics upload checklists.
+
+```mermaid
+erDiagram
+    USER {
+        string id PK "UUID"
+        string email UK
+        string name
+        datetime dob
+        int age
+        string gender
+        string city
+        string relationshipStatus
+        string marriageTimeline
+        string userRelation
+    }
+    LIFESTYLE {
+        string id PK "UUID"
+        string userId FK "Nullable"
+        string prospectId FK "Nullable"
+        string activityLevel
+        int dailySteps
+        string occupation
+        string workStyle
+        string drinkingHabit
+        string smokingHabit
+        string tobaccoHabit
+        string sleepPattern
+        float heightValue
+        string heightUnit
+        float weightValue
+        string weightUnit
+        float waistValue
+        string waistUnit
+        string menstrualCycle
+    }
+    PROSPECT {
+        string id PK "UUID"
+        string name
+        datetime dob
+        int age
+        string gender
+        string city
+        string meetingSource
+        string platformName
+    }
+    MATCH {
+        string id PK "UUID"
+        string userId FK
+        string prospectId FK
+        int score
+        string status
+    }
+    REPORT {
+        string id PK "UUID"
+        string matchId FK
+        string category
+        boolean userUploaded
+        boolean prosUploaded
+    }
+    ANALYSIS_RESULT {
+        string id PK "UUID"
+        string matchId FK
+        jsonb resultData
+        datetime createdAt
+    }
+
+    USER ||--o| LIFESTYLE : "has 1:1"
+    PROSPECT ||--o| LIFESTYLE : "has 1:1"
+    USER ||--o{ MATCH : "creates"
+    PROSPECT ||--o{ MATCH : "referenced by"
+    MATCH ||--o{ REPORT : "contains"
+    MATCH ||--o{ ANALYSIS_RESULT : "has"
+```
+
+### Model Definitions
+1. **`User`**: Core account details representing the logged-in candidate. Phone is used as a unique identifier. Cascades lifestyle deletes.
+2. **`Lifestyle`**: 1-to-1 extension of traits for either a `User` or a `Prospect` (utilizing unique nullable FK constraints `userId` and `prospectId`).
+3. **`Prospect`**: Demographic context on the proposed matchmaking partner.
+4. **`Match`**: Tracks a compatibility pairing. Includes completion status (`pending` | `analyzing` | `completed`) and matching scores.
+5. **`Report`**: Diagnostic checkpoints partitioned by category (`pathology` | `radiology` | `genetic` | `mentalHealth` | `lifestyle`). Employs a compound unique key `@@unique([matchId, category])` to prevent double-entries.
+6. **`AnalysisResult`**: JSON storage containing the direct serialized response from the FastAPI Interpretability Engine for caching and auditing.
 
 ---
 
-## 🔑 Authentication Architecture (OAuth Resource Server)
+## 🔒 Security & Local JWT Signature Validation
 
-The Slay Health API operates as an OAuth 2.0 Resource Server. Instead of calling Supabase Auth endpoints over the network for every request, it performs local token verification using the project's cryptographic JWT secret.
+The Express server functions as an OAuth 2.0 Resource Server. Rather than forwarding client authentication sessions over the network on every transaction, the API conducts local JWT signature checks using HS256 decryption.
 
-### 1. Token Verification Middleware
-* **Location:** [authMiddleware.ts](file:///Users/pranavsingh/Desktop/untitled%20folder%202/slay_health/website/server/src/authMiddleware.ts)
-* **Mechanics:**
-  * Extracts the JWT bearer token from the `Authorization: Bearer <token>` header.
-  * Decodes and validates the signature locally using `process.env.SUPABASE_JWT_SECRET` (HS256).
-  * Automatically binds decoded user metadata (`sub` as the User UUID, and any custom OAuth `scope` grants) onto the Express request as `req.user`.
-  * Protects routes, yielding a `401 Unauthorized` response on validation failures or token expiry.
+### 1. Token Middleware Pipeline
+* **File Location**: [authMiddleware.ts](file:///Users/pranavsingh/Desktop/untitled%20folder%202/slay_health/website/server/src/authMiddleware.ts)
+* **Execution Flow**:
+  1. Inspects the incoming HTTP request headers for an `Authorization` field.
+  2. Ensures the token conforms to `Bearer <JWT_STRING>`.
+  3. Uses the configured `SUPABASE_JWT_SECRET` to locally verify the HMAC-SHA256 signature.
+  4. Binds the decrypted claims metadata onto the request object as `req.user` (including `sub`, `email`, `role`, and `phone` values).
+  5. Short-circuits invalid signatures, structural faults, or expired tokens with an HTTP `401 Unauthorized` response.
 
-### 2. Configuration Settings (`.env`)
-* **`DATABASE_URL`**: Connects via Supavisor Transaction Pooler (`port: 6543`) with `pgbouncer=true`.
-* **`DIRECT_URL`**: Connects via Session Mode (`port: 5432`) for schema migrations.
-* **`SUPABASE_JWT_SECRET`**: Private signing key used by the middleware to verify incoming OAuth tokens.
-
----
-
-## 🗄️ Relational Database Schema
-
-* **File Location:** [schema.prisma](file:///Users/pranavsingh/Desktop/untitled%20folder%202/slay_health/website/server/prisma/schema.prisma)
-
-### Data Models
-* **`User`**: Represents the candidate profile. Houses general demographic data, relationship statuses, and marriage timelines. Linked 1-to-1 with a `Lifestyle` record.
-* **`Lifestyle`**: Stores detailed physical traits and personal habits (activity levels, steps, sleep cycles, height, weight, waist circumference, cycle data, alcohol/smoking/tobacco statuses). Associated with either a `User` or a `Prospect`.
-* **`Prospect`**: Represents the potential matrimonial partner whose health and lifestyle alignment is being evaluated.
-* **`Match`**: Defines a pairing between a `User` and a `Prospect`. Holds compatibility parameters like the matching algorithm `score` and completion `status` (`pending`, `ready`, `in-progress`).
-* **`Report`**: Individual premarital diagnostic health categories mapped under a `Match` (`pathology`, `radiology`, `genetic`, `mentalHealth`, `lifestyle`). Tracks upload flags for both candidates.
+### 2. JWT Configuration Keys (`.env`)
+* **`PORT`**: Port number for Express listener (default: `4000`).
+* **`DATABASE_URL`**: Transaction-mode Supavisor pooler string (port `6543`) with `pgbouncer=true` query arguments.
+* **`DIRECT_URL`**: Session-mode Supavisor connection string (port `5432`) for running migration tasks.
+* **`SUPABASE_URL`**: Public Supabase project url endpoints.
+* **`SUPABASE_JWT_SECRET`**: Cryptographic secret key shared with the Supabase dashboard project, used to decode access tokens locally.
 
 ---
 
-## 📁 File Structure & Entrypoints
+## 📁 File Structure & Core API Endpoints
 
-### 1. [src/index.ts](file:///Users/pranavsingh/Desktop/untitled%20folder%202/slay_health/website/server/src/index.ts)
-Main API entry point running on port `4000` (by default). Exposes:
-* **`GET /health`** [Public]: Basic API status check.
-* **`GET /api/auth/me`** [Protected]: Returns details decoded from the caller's active OAuth token.
-* **`GET /api/users`** [Protected]: Returns users along with their `Lifestyle` profiles.
-* **`POST /api/users`** [Protected]: Configures new user profiles and embeds lifestyle models.
-* **`GET /api/matches`** [Protected]: Fetches matches alongside user, prospect, and report associations.
+### 1. File Tree
+```
+website/server/
+├── prisma/
+│   └── schema.prisma        # Database relational models
+├── src/
+│   ├── authMiddleware.ts    # JWT token validation rules
+│   └── index.ts             # API routes and server listener
+├── test-oauth.js            # Mock token validation testing script
+└── package.json             # Engine and dependencies
+```
 
-### 2. [test-oauth.js](file:///Users/pranavsingh/Desktop/untitled%20folder%202/slay_health/website/server/test-oauth.js)
-A temporary testing utility that:
-* Signs a mock JWT locally using `SUPABASE_JWT_SECRET`.
-* Performs query runs against the local server to verify that:
-  * Public routes load.
-  * Unauthenticated headers are rejected (`401`).
-  * Authorized OAuth tokens pass verification (`200`).
+### 2. Exposed API Endpoints
+All endpoints under `/api/*` are guarded by the `authMiddleware` check and require a signed Bearer header.
+
+* **`GET /health`** [Public]: Returns health check status of the server.
+* **`GET /api/auth/me`** [Protected]: Returns parsed credentials (user ID, phone number, token metadata) of the caller.
+* **`GET /api/users`** [Protected]: Returns users together with their linked `Lifestyle` data models.
+* **`POST /api/users`** [Protected]: Accepts demographic and nested lifestyle parameters to provision a new user profile.
+* **`GET /api/matches`** [Protected]: Fetches all matches, including candidate demographics, prospect details, and reports.
+* **`GET /api/matches/:id`** [Protected]: Fetches a specific match by ID alongside its associated `AnalysisResult` data for frontend hydration.
+* **`POST /api/matches/:id/analyze`** [Protected]: Proxies FormData containing uploaded PDF reports and manual text inputs directly to the FastAPI (`http://localhost:8000/analyze_and_interpret`) engine. Updates the DB match status and persists the JSON.
 
 ---
 
-## 🚀 Running and Managing the Backend
+## 🛠️ Operations & Execution Guides
 
-### Installation & Development
+### 1. Start Server for Development
 ```bash
 # Install dependencies
 npm install
 
-# Run hot-reloading server
+# Run hot-reloading dev server
 npm run dev
 ```
 
-### Prisma Schema Syncing
+### 2. Verify Compilation
 ```bash
-# Push schema updates directly to Supabase PostgreSQL database
+npm run build
+```
+
+### 3. Database Migration Procedures
+```bash
+# Push prisma changes directly to Supabase
 npx prisma db push
 
-# Launch Prisma Studio to visually inspect database entries
+# Generate Prisma Client
+npx prisma generate
+
+# Launch visual admin panel
 npx prisma studio
 ```
