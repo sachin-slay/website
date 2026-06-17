@@ -247,7 +247,7 @@ const LayoutContent = () => {
 };
 
 const Layout = () => (
-    <ReactLenis root options={{ lerp: 0.08, duration: 1.1, smoothWheel: true, syncTouch: false }}>
+    <ReactLenis root options={{ lerp: 0.05, duration: 1.5, smoothWheel: true, syncTouch: false }}>
         <LayoutContent />
     </ReactLenis>
 );
