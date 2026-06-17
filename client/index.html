@@ -83,9 +83,11 @@
     }
     </script>
 
-    <!-- Preconnect to external origins for performance -->
+    <!-- Preconnect + Preload critical assets for LCP -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/images/hero-image9.png" as="image" fetchpriority="high" />
+    <link rel="preload" href="/images/logo.png" as="image" />
 
     <!-- Google Analytics 4 - Replace G-XXXXXXXXXX with your actual GA4 ID -->
     <!-- <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>

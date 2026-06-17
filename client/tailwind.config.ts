@@ -28,7 +28,10 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				'brand-green': '#17CB96',
 				'brand-pink': '#DE457D',
+				'brand-red': '#D4544C',
+				'brand-gold': '#FFB800',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -122,6 +125,22 @@ export default {
 					'0%': { transform: 'translateX(0)' },
 					'100%': { transform: 'translateX(-50%)' },
 				},
+				'spin-slow': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' },
+				},
+				'spin-slower': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' },
+				},
+				'glow-pulse': {
+					'0%, 100%': { boxShadow: '0 0 20px rgba(23, 203, 150, 0.2)' },
+					'50%': { boxShadow: '0 0 40px rgba(23, 203, 150, 0.4)' },
+				},
+				'scale-breathe': {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.03)' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -136,6 +155,10 @@ export default {
 				'bounce-light': 'bounce-light 3s ease-in-out infinite',
 				'progress': 'progress 3s ease-in-out',
 				'marquee': 'marquee 30s linear infinite',
+				'spin-slow': 'spin-slow 20s linear infinite',
+				'spin-slower': 'spin-slower 40s linear infinite',
+				'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
+				'scale-breathe': 'scale-breathe 4s ease-in-out infinite',
 			},
 		}
 	},

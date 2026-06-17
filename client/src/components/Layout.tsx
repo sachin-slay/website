@@ -1,165 +1,255 @@
-import React from 'react';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-import { Heart, Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { ExitIntentModal } from '@/components/ExitIntentModal';
+import React, { useEffect, useRef, useState } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { ReactLenis } from 'lenis/react';
+import { useLenis } from 'lenis/react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Menu, X, Shield, Lock, Heart, ArrowRight } from 'lucide-react';
 
-const Layout = () => {
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-    const [isScrolled, setIsScrolled] = React.useState(false);
-    const [isPastHero, setIsPastHero] = React.useState(false);
+gsap.registerPlugin(ScrollTrigger);
+
+const LayoutContent = () => {
+    const lenis = useLenis();
     const location = useLocation();
+    const progressRef = useRef<HTMLDivElement>(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
 
-    const navItems = [
-        { name: 'How It Works', path: '/how-it-works' },
-        { name: 'Clinical Safety', path: '/safety' },
-        { name: 'Growth & Partners', path: '/growth' },
-        { name: 'Cultural & Access', path: '/cultural' },
-    ];
+    // ── ScrollTrigger + Lenis scrollerProxy ──────────────────────────
+    useEffect(() => {
+        if (!lenis) return;
 
-    React.useEffect(() => {
-        const handleScroll = () => {
-            const scrollPosition = window.scrollY;
-            const heroHeight = window.innerHeight - 80; // viewport height minus nav height
+        ScrollTrigger.scrollerProxy(window, {
+            scrollTop: (value?: number) => {
+                if (value !== undefined) {
+                    lenis.scrollTo(value, { immediate: true });
+                }
+                return lenis.scroll;
+            },
+            scrollLeft: () => 0,
+            getBoundingClientRect() {
+                return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight };
+            },
+        });
 
-            setIsScrolled(scrollPosition > 10);
-            setIsPastHero(scrollPosition > heroHeight);
+        ScrollTrigger.refresh();
+    }, [lenis]);
+
+    // ── Sync Lenis scroll → ScrollTrigger ────────────────────────────
+    useEffect(() => {
+        if (!lenis) return;
+        const syncScroll = () => ScrollTrigger.update();
+        lenis.on('scroll', syncScroll);
+        ScrollTrigger.refresh();
+        return () => { lenis.off('scroll', syncScroll); };
+    }, [lenis]);
+
+    // ── Progress bar + nav style via Lenis scroll ────────────────────
+    useEffect(() => {
+        if (!lenis) return;
+        const onScroll = () => {
+            if (!progressRef.current) return;
+            const scroll = lenis.scroll;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const pct = height > 0 ? (scroll / height) * 100 : 0;
+            progressRef.current.style.width = pct + '%';
+            setScrolled(scroll > 60);
         };
+        lenis.on('scroll', onScroll);
+        onScroll();
+        return () => { lenis.off('scroll', onScroll); };
+    }, [lenis]);
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    // ── Anchor link interception ──────────────────────────────────────
+    useEffect(() => {
+        if (!lenis) return;
+        const handleClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const anchor = target.closest('a[href^="#"]');
+            if (!anchor) return;
+            e.preventDefault();
+            const href = (anchor as HTMLAnchorElement).getAttribute('href');
+            if (!href || href === '#') return;
+            const el = document.querySelector(href) as HTMLElement | null;
+            if (el) lenis.scrollTo(el, { offset: -80, duration: 1.2 });
+        };
+        document.addEventListener('click', handleClick);
+        return () => document.removeEventListener('click', handleClick);
+    }, [lenis]);
+
+    // ── Reset scroll on route change ──────────────────────────────────
+    useEffect(() => {
+        if (lenis) lenis.scrollTo(0, { immediate: true });
+    }, [location.pathname, lenis]);
+
+    const navClass = scrolled
+        ? 'fixed top-0 left-0 right-0 z-50 glass-premium-strong shadow-sm transition-all duration-300 py-1 md:py-2'
+        : 'fixed top-0 left-0 right-0 z-50 bg-transparent transition-all duration-300 py-3 md:py-4';
 
     return (
-        <div className="min-h-screen bg-brand-pink-light font-sans text-foreground flex flex-col">
-            {/* Skip to main content link for accessibility */}
-            <a
-                href="#main-content"
-                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-6 focus:py-3 focus:bg-primary focus:text-white focus:rounded-lg focus:shadow-lg focus:font-semibold"
-            >
-                Skip to main content
-            </a>
+        <>
+            <div ref={progressRef} className="scroll-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} />
+            <a href="#main-content" className="skip-to-content">Skip to main content</a>
 
-            {/* Navigation */}
-            <header
-                className={cn(
-                    "sticky top-0 z-50 w-full transition-all duration-300",
-                    isScrolled
-                        ? "border-b bg-brand-pink-light/90 backdrop-blur-md shadow-sm"
-                        : "bg-brand-pink-light"
-                )}
-            >
-                <div className="container mx-auto px-4 h-20 flex items-center justify-between">
-                    <Link to="/" className="flex items-center space-x-2">
-                        <img src="/images/logo.png" alt="Slay Health" className="h-16 lg:h-20 w-auto" />
-                    </Link>
-
-                    {/* Desktop Nav */}
-                    <nav className="hidden md:flex items-center space-x-8">
-                        {!isPastHero && navItems.map((item) => (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={cn(
-                                    "text-base font-medium transition-all duration-300 hover:text-primary",
-                                    location.pathname === item.path ? "text-primary" : "text-slate-600",
-                                )}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
-                        <Link to="/login" className="bg-[#D4544C] text-white px-6 py-2.5 rounded-full text-base font-medium hover:bg-[#c24941] transition-colors">
-                            Get Started
-                        </Link>
-                    </nav>
-
-                    {/* Mobile Menu Toggle */}
+            <header className={navClass}>
+                <nav className="max-w-7xl mx-auto px-4 md:px-8 flex items-center justify-between transition-all duration-300">
+                    <a href="/" className="flex items-center gap-3 group" aria-label="Slay Health Home">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-[#DE457D] opacity-20 blur-xl rounded-full group-hover:opacity-40 transition-opacity" />
+                            <img
+                                src="/images/logo.webp"
+                                alt="Slay Health"
+                                className="w-9 h-9 md:w-11 md:h-11 object-contain relative z-10 drop-shadow-sm group-hover:scale-105 transition-transform"
+                                width={44}
+                                height={44}
+                            />
+                        </div>
+                        <span className="font-bold text-xl tracking-tight" style={{ color: '#1a1a2e' }}>
+                            Slay<span style={{ color: '#DE457D' }}>Health</span>
+                        </span>
+                        <span className="hidden lg:flex items-center text-[10px] font-sans font-bold tracking-widest uppercase ml-3 pl-4 leading-none" style={{ color: '#9ca3af', borderLeft: '2px solid rgba(0,0,0,0.06)', height: '24px' }}>
+                            Know before you say "I Do"
+                        </span>
+                    </a>
+                    <div className="hidden md:flex items-center gap-8">
+                        <a href="#how-it-works" className="text-[11px] hover:text-[#DE457D] transition-colors font-black uppercase tracking-widest" style={{ color: '#4a5568' }}>
+                            How It Works
+                        </a>
+                        <a href="#pricing" className="text-[11px] hover:text-[#DE457D] transition-colors font-black uppercase tracking-widest" style={{ color: '#4a5568' }}>
+                            Pricing
+                        </a>
+                        <a
+                            href="#advisor-form"
+                            className="btn-premium text-[11px] text-white px-6 py-3 rounded-xl font-bold transition-all flex items-center gap-2 uppercase tracking-widest shadow-lg"
+                            style={{ background: 'linear-gradient(135deg, #DE457D, #C73A6A)', boxShadow: '0 8px 24px rgba(222,69,125,0.25)' }}
+                        >
+                            Get Started <ArrowRight className="w-3.5 h-3.5" />
+                        </a>
+                    </div>
                     <button
-                        className="md:hidden p-2"
+                        className="md:hidden glass-story p-2 rounded-xl flex items-center justify-center transition-colors"
+                        style={{ color: '#1a1a2e' }}
+                        aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+                        aria-expanded={isMenuOpen}
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
-                        {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                        {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                     </button>
-                </div>
+                </nav>
 
-                {/* Mobile Nav */}
-                {isMenuOpen && (
-                    <div className="md:hidden border-b bg-background p-4 space-y-4">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.path}
-                                to={item.path}
-                                className={cn(
-                                    "block text-sm font-medium transition-colors hover:text-primary",
-                                    location.pathname === item.path ? "text-primary" : "text-slate-600"
-                                )}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                {item.name}
-                            </Link>
-                        ))}
-                        <Link to="/login" className="w-full block text-center bg-[#D4544C] text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-[#c24941] transition-colors">
-                            Get Started
-                        </Link>
+                {/* Mobile Menu */}
+                <div className={`md:hidden absolute top-full left-0 w-full glass-premium-strong overflow-hidden transition-all duration-300 ease-in-out ${isMenuOpen ? 'max-h-96 opacity-100 border-b border-black/5' : 'max-h-0 opacity-0'}`}>
+                    <div className="px-6 py-6 flex flex-col gap-4">
+                        <a
+                            href="#how-it-works"
+                            className="block text-xs py-3 font-black uppercase tracking-widest hover:text-[#DE457D] transition-colors"
+                            style={{ color: '#1a1a2e', borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            How It Works
+                        </a>
+                        <a
+                            href="#pricing"
+                            className="block text-xs py-3 font-black uppercase tracking-widest hover:text-[#DE457D] transition-colors"
+                            style={{ color: '#1a1a2e', borderBottom: '1px solid rgba(0,0,0,0.05)' }}
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            Pricing
+                        </a>
+                        <a
+                            href="#advisor-form"
+                            className="btn-premium flex items-center justify-center gap-2 text-xs text-white px-5 py-4 rounded-xl font-bold text-center uppercase tracking-widest mt-2"
+                            style={{ background: 'linear-gradient(135deg, #DE457D, #C73A6A)', boxShadow: '0 8px 24px rgba(222,69,125,0.25)' }}
+                            onClick={() => setIsMenuOpen(false)}
+                        >
+                            Get Started <ArrowRight className="w-4 h-4" />
+                        </a>
                     </div>
-                )}
+                </div>
             </header>
 
-            {/* Exit Intent Modal */}
-            <ExitIntentModal />
+            <div className="min-h-screen font-sans flex flex-col" style={{ background: '#FDF6F0', color: '#1a1a2e' }}>
+                <main id="main-content" className="flex-1">
+                    <Outlet />
+                </main>
 
-            {/* Main Content */}
-            <main id="main-content" className="flex-1">
-                <Outlet />
-            </main>
+                <footer className="relative overflow-hidden py-16 md:py-24" style={{ background: '#FAF0E6' }}>
+                    <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#DE457D]/20 to-transparent" />
+                    <div className="blob-pink" style={{ width: '500px', height: '500px', top: '-250px', left: '-250px', opacity: 0.3 }} />
+                    <div className="blob-gold" style={{ width: '400px', height: '400px', bottom: '-200px', right: '-200px', opacity: 0.2 }} />
 
-            {/* Footer */}
-            <footer className="border-t bg-muted/30">
-                <div className="container mx-auto px-4 py-12">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div className="space-y-4">
-                            <div className="flex items-center space-x-2">
-                                <img src="/images/logo.png" alt="Slay Health" className="h-16 lg:h-20 w-auto" />
+                    <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+                        <div className="glass-card rounded-3xl p-8 md:p-12 mb-12 flex flex-col md:flex-row items-center justify-between gap-8" style={{ background: 'rgba(255,255,255,0.4)', borderColor: 'rgba(255,255,255,0.6)' }}>
+                            <div>
+                                <h3 className="text-2xl md:text-3xl font-black font-sans tracking-tight" style={{ color: '#1a1a2e' }}>Ready for complete <span className="gradient-text-gp">clarity?</span></h3>
+                                <p className="text-sm mt-2 max-w-md leading-relaxed" style={{ color: '#4a5568' }}>Secure your future with our doctor-reviewed premarital health screening.</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                Know what marriage hides before you commit. Scientific health compatibility screening for every couple.
+                            <a href="#advisor-form" className="btn-premium flex items-center gap-2 text-xs text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #17CB96, #14B886)', boxShadow: '0 8px 24px rgba(23,203,150,0.25)' }}>
+                                Book Screening <ArrowRight className="w-4 h-4" />
+                            </a>
+                        </div>
+
+                        <div className="grid md:grid-cols-4 gap-10 md:gap-8 mb-16">
+                            <div className="col-span-2 md:col-span-1 space-y-5">
+                                <a href="/" className="flex items-center gap-3 group">
+                                    <img src="/images/logo.webp" alt="Slay Health" className="w-10 h-10 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />
+                                    <span className="font-bold text-xl tracking-tight" style={{ color: '#1a1a2e' }}>Slay<span style={{ color: '#DE457D' }}>Health</span></span>
+                                </a>
+                                <p className="text-xs leading-relaxed max-w-xs" style={{ color: '#4a5568' }}>
+                                    India's first dedicated premarital health compatibility screening platform. Know before you say "I Do."
+                                </p>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-5" style={{ color: '#9ca3af' }}>Services</h4>
+                                <ul className="space-y-4">
+                                    <li><a href="#pricing" className="text-xs font-bold hover:text-[#DE457D] transition-colors" style={{ color: '#4a5568' }}>Individual Screening</a></li>
+                                    <li><a href="#pricing" className="text-xs font-bold hover:text-[#DE457D] transition-colors" style={{ color: '#4a5568' }}>Couple Compatibility</a></li>
+                                    <li><a href="#pricing" className="text-xs font-bold hover:text-[#DE457D] transition-colors" style={{ color: '#4a5568' }}>Expert Consultation</a></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-5" style={{ color: '#9ca3af' }}>Support</h4>
+                                <ul className="space-y-4">
+                                    <li><a href="#advisor-form" className="text-xs font-bold hover:text-[#DE457D] transition-colors" style={{ color: '#4a5568' }}>Contact Us</a></li>
+                                    <li><span className="text-xs font-bold" style={{ color: '#4a5568' }}>info@slay.health</span></li>
+                                    <li><span className="text-xs font-bold" style={{ color: '#4a5568' }}>+91 98765 43210</span></li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-widest mb-5" style={{ color: '#9ca3af' }}>Trust</h4>
+                                <ul className="space-y-4">
+                                    <li className="flex items-center gap-2.5 text-xs font-bold" style={{ color: '#4a5568' }}>
+                                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-white/60"><Shield className="w-3.5 h-3.5" style={{ color: '#17CB96' }} /></div> HIPAA Compliant
+                                    </li>
+                                    <li className="flex items-center gap-2.5 text-xs font-bold" style={{ color: '#4a5568' }}>
+                                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-white/60"><Lock className="w-3.5 h-3.5" style={{ color: '#FFB800' }} /></div> 100% Private
+                                    </li>
+                                    <li className="flex items-center gap-2.5 text-xs font-bold" style={{ color: '#4a5568' }}>
+                                        <div className="w-6 h-6 rounded-md flex items-center justify-center bg-white/60"><Heart className="w-3.5 h-3.5" style={{ color: '#DE457D' }} /></div> Doctor Reviewed
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8 border-t border-black/5">
+                            <p className="text-[11px] font-bold" style={{ color: '#9ca3af' }}>
+                                &copy; {new Date().getFullYear()} Slay Health. All rights reserved.
+                            </p>
+                            <p className="text-[11px] font-bold" style={{ color: '#9ca3af' }}>
+                                Built with clarity for couples building a future together.
                             </p>
                         </div>
-
-                        <div>
-                            <h3 className="font-semibold mb-4">Platform</h3>
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li><Link to="/how-it-works" className="hover:text-primary">How It Works</Link></li>
-                                <li><Link to="/safety" className="hover:text-primary">Clinical Safety</Link></li>
-                                <li><Link to="/growth" className="hover:text-primary">Partners</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="font-semibold mb-4">Resources</h3>
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li><Link to="/cultural" className="hover:text-primary">Cultural Context</Link></li>
-                                <li><Link to="/sample-report" className="hover:text-primary">Sample Report</Link></li>
-                                <li><Link to="/contact" className="hover:text-primary">Contact Us</Link></li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="font-semibold mb-4">Legal</h3>
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                <li><Link to="/trust" className="hover:text-primary">Privacy & Trust</Link></li>
-                                <li><Link to="/safety" className="hover:text-primary">Medical Safety</Link></li>
-                                <li><Link to="/why-it-matters" className="hover:text-primary">Why It Matters</Link></li>
-                            </ul>
-                        </div>
                     </div>
-                    <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} Slay Health. All rights reserved.
-                    </div>
-                </div>
-            </footer>
-        </div>
+                </footer>
+            </div>
+        </>
     );
 };
+
+const Layout = () => (
+    <ReactLenis root options={{ lerp: 0.08, duration: 1.1, smoothWheel: true, syncTouch: false }}>
+        <LayoutContent />
+    </ReactLenis>
+);
 
 export default Layout;
