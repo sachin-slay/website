@@ -268,13 +268,13 @@ export const HomePage = () => {
                     <div className="flex items-end justify-center gap-8 md:gap-16 mt-10 md:mt-14">
                         <div className="ch1-aarav flex flex-col items-center opacity-0">
                             <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-anim">
-                                <img src="/images/character_aarav.webp" alt="Aarav" className="w-full h-full object-cover object-top" />
+                                <img src="/images/character_aarav.png" alt="Aarav" className="w-full h-full object-cover object-top" />
                             </div>
                             <span className="mt-4 text-xs font-bold uppercase tracking-widest" style={{ color: '#4a5568' }}>Aarav</span>
                         </div>
                         <div className="ch1-riya flex flex-col items-center opacity-0">
                             <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-slow">
-                                <img src="/images/character_riya.webp" alt="Riya" className="w-full h-full object-cover object-top" />
+                                <img src="/images/character_riya.png" alt="Riya" className="w-full h-full object-cover object-top" />
                             </div>
                             <span className="mt-4 text-xs font-bold uppercase tracking-widest" style={{ color: '#4a5568' }}>Riya</span>
                         </div>
@@ -306,7 +306,7 @@ export const HomePage = () => {
 
                     <div className="ch2-characters flex items-center justify-center gap-6 md:gap-10 mt-10">
                         <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
-                            <img src="/images/character_aarav.webp" alt="Aarav" className="w-full h-full object-cover object-top" />
+                            <img src="/images/character_aarav.png" alt="Aarav" className="w-full h-full object-cover object-top" />
                         </div>
                         <div className="ch2-dna-icon opacity-0">
                             <div className="w-14 h-14 rounded-2xl glass-card flex items-center justify-center" style={{ boxShadow: '0 8px 30px rgba(212,84,76,0.15)' }}>
@@ -314,7 +314,7 @@ export const HomePage = () => {
                             </div>
                         </div>
                         <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
-                            <img src="/images/character_riya.webp" alt="Riya" className="w-full h-full object-cover object-top" />
+                            <img src="/images/character_riya.png" alt="Riya" className="w-full h-full object-cover object-top" />
                         </div>
                     </div>
 
@@ -340,8 +340,8 @@ export const HomePage = () => {
 
                     <div className="flex items-start justify-center gap-8 md:gap-20 mt-10">
                         {[
-                            { img: '/images/character_aarav.webp', name: 'Aarav', cls: 'ch3-aarav-tag' },
-                            { img: '/images/character_riya.webp', name: 'Riya', cls: 'ch3-riya-tag' },
+                            { img: '/images/character_aarav.png', name: 'Aarav', cls: 'ch3-aarav-tag' },
+                            { img: '/images/character_riya.png', name: 'Riya', cls: 'ch3-riya-tag' },
                         ].map((c) => (
                             <div key={c.name} className="flex flex-col items-center">
                                 <div className="relative">
@@ -425,7 +425,7 @@ export const HomePage = () => {
                         {['character_aarav', 'character_riya'].map((c) => (
                             <div key={c} className="flex flex-col items-center">
                                 <div className="character-frame character-frame-success w-28 h-36 md:w-40 md:h-52">
-                                    <img src={`/images/${c}.webp`} alt="Screened" className="w-full h-full object-cover object-top" />
+                                    <img src={`/images/${c}.png`} alt="Screened" className="w-full h-full object-cover object-top" />
                                 </div>
                                 <span className="badge-success-pulse mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#17CB96] text-white text-[9px] font-black uppercase tracking-wider">
                                     <Check className="w-3 h-3" /> Screened
@@ -585,10 +585,10 @@ export const HomePage = () => {
                     </div>
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
                         {[
-                            { num: '01', title: 'Schedule Online', desc: 'Select your plan, register details, and confirm booking in 2 minutes.', color: '#17CB96', img: '/images/hs-7.webp' },
-                            { num: '02', title: 'Collect Samples', desc: 'NABL-accredited experts collect blood samples at home or lab.', color: '#DE457D', img: '/images/hs-2.webp' },
-                            { num: '03', title: 'Process Profiles', desc: 'Our engine cross-matches analysis across all 6 clinical fields.', color: '#FFB800', img: '/images/hs-5.webp' },
-                            { num: '04', title: 'Doctor Guidance', desc: 'Evaluate results in a secure report reviewed 1-on-1 by certified doctors.', color: '#8B5CF6', img: '/images/hs-1.webp' },
+                            { num: '01', title: 'Schedule Online', desc: 'Select your plan, register details, and confirm booking in 2 minutes.', color: '#17CB96', img: '/images/hs-7.png' },
+                            { num: '02', title: 'Collect Samples', desc: 'NABL-accredited experts collect blood samples at home or lab.', color: '#DE457D', img: '/images/hs-2.png' },
+                            { num: '03', title: 'Process Profiles', desc: 'Our engine cross-matches analysis across all 6 clinical fields.', color: '#FFB800', img: '/images/hs-5.png' },
+                            { num: '04', title: 'Doctor Guidance', desc: 'Evaluate results in a secure report reviewed 1-on-1 by certified doctors.', color: '#8B5CF6', img: '/images/hs-1.png' },
                         ].map((step, i) => (
                             <div key={i} className="biz-reveal glass-card rounded-2xl p-5 flex flex-col group">
                                 <div className="w-full aspect-[4/3] rounded-xl overflow-hidden flex items-center justify-center p-3 relative mb-5" style={{ background: 'rgba(253,246,240,0.6)', border: '1px solid rgba(255,255,255,0.5)' }}>

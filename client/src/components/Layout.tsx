@@ -97,7 +97,7 @@ const LayoutContent = () => {
                         <div className="relative">
                             <div className="absolute inset-0 bg-[#DE457D] opacity-20 blur-xl rounded-full group-hover:opacity-40 transition-opacity" />
                             <img
-                                src="/images/logo.webp"
+                                src="/images/logo.png"
                                 alt="Slay Health"
                                 className="w-9 h-9 md:w-11 md:h-11 object-contain relative z-10 drop-shadow-sm group-hover:scale-105 transition-transform"
                                 width={44}
@@ -192,7 +192,7 @@ const LayoutContent = () => {
                         <div className="grid md:grid-cols-4 gap-10 md:gap-8 mb-16">
                             <div className="col-span-2 md:col-span-1 space-y-5">
                                 <a href="/" className="flex items-center gap-3 group">
-                                    <img src="/images/logo.webp" alt="Slay Health" className="w-10 h-10 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />
+                                    <img src="/images/logo.png" alt="Slay Health" className="w-10 h-10 object-contain drop-shadow-sm group-hover:scale-105 transition-transform" />
                                     <span className="font-bold text-xl tracking-tight" style={{ color: '#1a1a2e' }}>Slay<span style={{ color: '#DE457D' }}>Health</span></span>
                                 </a>
                                 <p className="text-xs leading-relaxed max-w-xs" style={{ color: '#4a5568' }}>
