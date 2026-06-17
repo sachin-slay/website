@@ -137,42 +137,42 @@ export const HomePage = () => {
             .fromTo('.ch1-aarav', { opacity: 0, x: -100, rotateY: -15 }, { opacity: 1, x: 0, rotateY: 0, duration: 0.6 }, 0.2)
             .fromTo('.ch1-riya', { opacity: 0, x: 100, rotateY: 15 }, { opacity: 1, x: 0, rotateY: 0, duration: 0.6 }, 0.25)
             .fromTo('.ch1-checklist', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4 }, 0.6)
-            .to('.chapter-1-content', { opacity: 0, y: -40, duration: 0.3 }, 1.3)
+            .to('.chapter-1-content', { opacity: 0, y: -60, duration: 0.8 }, 1.3)
 
         // Ch2: The Blindspot
-            .fromTo('.chapter-2-content', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 1.6)
-            .fromTo('.ch2-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 1.7)
-            .fromTo('.ch2-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 1.8)
-            .fromTo('.ch2-characters', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, 1.9)
-            .fromTo('.ch2-dna-icon', { opacity: 0, scale: 0, rotate: -180 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.5 }, 2.1)
-            .fromTo('.ch2-stats', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5 }, 2.2)
-            .to('.chapter-2-content', { opacity: 0, y: -40, duration: 0.3 }, 2.8)
+            .fromTo('.chapter-2-content', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 1.8)
+            .fromTo('.ch2-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 1.9)
+            .fromTo('.ch2-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 2.0)
+            .fromTo('.ch2-characters', { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6 }, 2.1)
+            .fromTo('.ch2-dna-icon', { opacity: 0, scale: 0, rotate: -180 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.5 }, 2.3)
+            .fromTo('.ch2-stats', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.5 }, 2.4)
+            .to('.chapter-2-content', { opacity: 0, y: -60, duration: 0.8 }, 3.1)
 
         // Ch3: The Hidden Risk
-            .fromTo('.chapter-3-content', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 3.1)
-            .fromTo('.ch3-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 3.2)
-            .fromTo('.ch3-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 3.3)
-            .fromTo('.ch3-aarav-tag', { opacity: 0, x: -40, scale: 0.6 }, { opacity: 1, x: 0, scale: 1, duration: 0.5 }, 3.5)
-            .fromTo('.ch3-riya-tag', { opacity: 0, x: 40, scale: 0.6 }, { opacity: 1, x: 0, scale: 1, duration: 0.5 }, 3.6)
-            .fromTo('.ch3-punnett', { opacity: 0, y: 50, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, 3.7)
-            .fromTo('.ch3-warning', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 4.0)
-            .to('.chapter-3-content', { opacity: 0, y: -40, duration: 0.3 }, 4.4)
+            .fromTo('.chapter-3-content', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 3.6)
+            .fromTo('.ch3-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 3.7)
+            .fromTo('.ch3-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 3.8)
+            .fromTo('.ch3-aarav-tag', { opacity: 0, x: -40, scale: 0.6 }, { opacity: 1, x: 0, scale: 1, duration: 0.5 }, 4.0)
+            .fromTo('.ch3-riya-tag', { opacity: 0, x: 40, scale: 0.6 }, { opacity: 1, x: 0, scale: 1, duration: 0.5 }, 4.1)
+            .fromTo('.ch3-punnett', { opacity: 0, y: 50, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.5 }, 4.2)
+            .fromTo('.ch3-warning', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3 }, 4.5)
+            .to('.chapter-3-content', { opacity: 0, y: -60, duration: 0.8 }, 5.2)
 
         // Ch4: The Clarity
-            .fromTo('.chapter-4-content', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 4.7)
-            .fromTo('.ch4-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 4.8)
-            .fromTo('.ch4-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 4.9)
-            .fromTo('.ch4-pillars', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.06 }, 5.0)
-            .fromTo('.ch4-cta-text', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 5.4)
-            .to('.chapter-4-content', { opacity: 0, y: -40, duration: 0.3 }, 5.8)
+            .fromTo('.chapter-4-content', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 5.7)
+            .fromTo('.ch4-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 5.8)
+            .fromTo('.ch4-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 5.9)
+            .fromTo('.ch4-pillars', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.06 }, 6.0)
+            .fromTo('.ch4-cta-text', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4 }, 6.4)
+            .to('.chapter-4-content', { opacity: 0, y: -60, duration: 0.8 }, 7.1)
 
         // Ch5: The Future
-            .fromTo('.chapter-5-content', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 6.1)
-            .fromTo('.ch5-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 6.2)
-            .fromTo('.ch5-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 6.3)
-            .fromTo('.ch5-characters', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5 }, 6.4)
-            .fromTo('.ch5-trust-cards', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08 }, 6.6)
-            .fromTo('.ch5-cta', { opacity: 0, y: 20, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, 6.9);
+            .fromTo('.chapter-5-content', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 7.6)
+            .fromTo('.ch5-badge', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3 }, 7.7)
+            .fromTo('.ch5-headline', { opacity: 0, y: 50 }, { opacity: 1, y: 0, duration: 0.5 }, 7.8)
+            .fromTo('.ch5-characters', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5 }, 7.9)
+            .fromTo('.ch5-trust-cards', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08 }, 8.1)
+            .fromTo('.ch5-cta', { opacity: 0, y: 20, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, 8.4);
 
         // Business section reveals
         gsap.utils.toArray<HTMLElement>('.biz-reveal').forEach((el) => {
@@ -240,7 +240,7 @@ export const HomePage = () => {
             {/* ═══════════════════════════════════════════
                 PART A — SCROLL-PINNED STORY
             ═══════════════════════════════════════════ */}
-            <div id="story-pin" className="relative w-full h-screen overflow-hidden dot-grid">
+            <div id="story-pin" className="relative w-full h-screen overflow-hidden net-grid perspective-1000">
                 {/* Decorative gradient blobs */}
                 <div className="blob-pink" style={{ width: '500px', height: '500px', top: '-10%', right: '-5%' }} />
                 <div className="blob-green" style={{ width: '400px', height: '400px', bottom: '-10%', left: '-5%' }} />
@@ -266,14 +266,14 @@ export const HomePage = () => {
                     </p>
 
                     <div className="flex items-end justify-center gap-8 md:gap-16 mt-10 md:mt-14">
-                        <div className="ch1-aarav flex flex-col items-center opacity-0">
-                            <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-anim">
+                        <div className="ch1-aarav flex flex-col items-center opacity-0 perspective-1000">
+                            <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-anim preserve-3d card-3d">
                                 <img src="/images/character_aarav.png" alt="Aarav" className="w-full h-full object-cover object-top" />
                             </div>
                             <span className="mt-4 text-xs font-bold uppercase tracking-widest" style={{ color: '#4a5568' }}>Aarav</span>
                         </div>
-                        <div className="ch1-riya flex flex-col items-center opacity-0">
-                            <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-slow">
+                        <div className="ch1-riya flex flex-col items-center opacity-0 perspective-1000">
+                            <div className="character-frame w-32 h-44 md:w-44 md:h-60 float-slow preserve-3d card-3d">
                                 <img src="/images/character_riya.png" alt="Riya" className="w-full h-full object-cover object-top" />
                             </div>
                             <span className="mt-4 text-xs font-bold uppercase tracking-widest" style={{ color: '#4a5568' }}>Riya</span>
@@ -305,7 +305,7 @@ export const HomePage = () => {
                     </h2>
 
                     <div className="ch2-characters flex items-center justify-center gap-6 md:gap-10 mt-10">
-                        <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
+                        <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20 perspective-1000 preserve-3d card-3d" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
                             <img src="/images/character_aarav.png" alt="Aarav" className="w-full h-full object-cover object-top" />
                         </div>
                         <div className="ch2-dna-icon opacity-0">
@@ -313,7 +313,7 @@ export const HomePage = () => {
                                 <Dna className="w-7 h-7" style={{ color: '#D4544C' }} />
                             </div>
                         </div>
-                        <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
+                        <div className="w-28 h-36 md:w-40 md:h-52 rounded-2xl overflow-hidden border-2 border-[#D4544C]/20 perspective-1000 preserve-3d card-3d" style={{ boxShadow: '0 16px 48px rgba(212,84,76,0.15)' }}>
                             <img src="/images/character_riya.png" alt="Riya" className="w-full h-full object-cover object-top" />
                         </div>
                     </div>
@@ -345,7 +345,7 @@ export const HomePage = () => {
                         ].map((c) => (
                             <div key={c.name} className="flex flex-col items-center">
                                 <div className="relative">
-                                    <div className="character-frame character-frame-danger w-28 h-36 md:w-40 md:h-52">
+                                    <div className="character-frame character-frame-danger w-28 h-36 md:w-40 md:h-52 perspective-1000 preserve-3d card-3d">
                                         <img src={c.img} alt={`${c.name} — Carrier`} className="w-full h-full object-cover object-top" />
                                     </div>
                                     <div className={`${c.cls} absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-0`}>
@@ -424,7 +424,7 @@ export const HomePage = () => {
                     <div className="ch5-characters flex items-end justify-center gap-10 md:gap-16 mt-10">
                         {['character_aarav', 'character_riya'].map((c) => (
                             <div key={c} className="flex flex-col items-center">
-                                <div className="character-frame character-frame-success w-28 h-36 md:w-40 md:h-52">
+                                <div className="character-frame character-frame-success w-28 h-36 md:w-40 md:h-52 perspective-1000 preserve-3d card-3d">
                                     <img src={`/images/${c}.png`} alt="Screened" className="w-full h-full object-cover object-top" />
                                 </div>
                                 <span className="badge-success-pulse mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#17CB96] text-white text-[9px] font-black uppercase tracking-wider">
