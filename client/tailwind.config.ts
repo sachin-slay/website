@@ -20,7 +20,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ["Inter", "SF Pro Display", "system-ui", "sans-serif"],
-				script: ["Caveat", "cursive"],
+				mono: ["JetBrains Mono", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -28,7 +28,8 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
-				'brand-green': '#17CB96',
+				'brand-green': '#18CB96',
+				'slayy-green': '#18CB96',
 				'brand-pink': '#DE457D',
 				'brand-red': '#D4544C',
 				'brand-gold': '#FFB800',
@@ -134,8 +135,8 @@ export default {
 					'100%': { transform: 'rotate(360deg)' },
 				},
 				'glow-pulse': {
-					'0%, 100%': { boxShadow: '0 0 20px rgba(23, 203, 150, 0.2)' },
-					'50%': { boxShadow: '0 0 40px rgba(23, 203, 150, 0.4)' },
+					'0%, 100%': { boxShadow: '0 0 20px rgba(24, 203, 150, 0.2)' },
+					'50%': { boxShadow: '0 0 40px rgba(24, 203, 150, 0.4)' },
 				},
 				'scale-breathe': {
 					'0%, 100%': { transform: 'scale(1)' },

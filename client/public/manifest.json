@@ -1,0 +1,16 @@
+{
+  "name": "Slay Health",
+  "short_name": "Slay Health",
+  "description": "Premarital Health Screening for Couples in India",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FCEEF0",
+  "theme_color": "#D4544C",
+  "icons": [
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
